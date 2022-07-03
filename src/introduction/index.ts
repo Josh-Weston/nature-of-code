@@ -1,3 +1,4 @@
+// Note: I have disabled inlay parameter hints because of the noise it introduces
 const randomWalker = (p5: p5) => {
     class Walker {
         x: number = 0;
@@ -108,7 +109,7 @@ const randomWalkerRightLean = (p5: p5) => {
     };
 };
 
-new p5(randomWalkerRightLean, document.getElementById('canvas-1'));
+// new p5(randomWalkerRightLean, document.getElementById('canvas-1'));
 
 const drawImage = (p5: p5) => {
 
@@ -135,7 +136,7 @@ const drawProbability = (p5:p5) => {
         p5.background(255);
     }
 
-    // we force the 0's and 2's to be selected more often
+    // we force the 0's and 2's to be selected more often by making them occur more often in our pool
     p5.draw = () => {
         const dist = [0, 0, 1, 2, 2];
         const index = p5.int(p5.random(dist.length));
@@ -232,6 +233,36 @@ const normalDistribution = (p5:p5) => {
 
 // new p5(normalDistribution, document.getElementById('canvas-2'));
 
+const gaussianPaintSplatter = (p5: p5) => {
+    
+    let numIterations = 500;
+    p5.setup = () => {
+        p5.createCanvas(500, 500);
+        p5.background('black');
+    }
+
+    p5.draw = () => {
+        const numX = p5.randomGaussian(250, 50);
+        const numY = p5.randomGaussian(250, 50);
+        const color1 = p5.randomGaussian(200, 25);
+        const color2 = p5.randomGaussian(100, 25);
+        const color3 = p5.randomGaussian(100, 50);
+        p5.noStroke();
+        p5.fill(color1, color2, color3, 10);
+        p5.ellipse(numX, numY, 20, 20);
+        if (numIterations-- === 0) {
+            stop();
+        }
+    }
+
+    function stop() {
+        p5.noLoop();
+    }
+
+};
+
+// new p5(gaussianPaintSplatter, document.getElementById('canvas-2'));
+
 const gaussianRandomWalk = (p5:p5) => {
 
     class Walker {
@@ -275,34 +306,34 @@ const gaussianRandomWalk = (p5:p5) => {
 
 // I.5 A Custom Distribution of Random Numbers
 
-const LevyRandomWalk = (p5:p5) => {
+const LevyFlightRandomWalk = (p5:p5) => {
 
     class Walker {
-        x: number = 0;
-        y: number = 0;
+
+        location: p5.Vector = p5.createVector(0, 0);
         constructor(startX: number, startY: number) {
-            this.x = startX;
-            this.y = startY;
+            this.location.x = startX;
+            this.location.x = startY;
         }
 
         display() {
             p5.stroke(255);
             // p5.strokeWeight(5);
-            p5.point(this.x, this.y);
+            p5.point(this.location.x, this.location.y);
         }
     
         // this is like spray painting
         step() {
 
-            const probabilityValue = random(); // between (0, 1]
+            const probabilityValue = p5.random(); // between (0, 1] // qualifying random number
             const probability = probabilityValue**10;
             // const probability = probabilityValue;
-            const value = random();
+            const value = p5.random();
 
             const stepSize = value > probability ? probabilityValue : 100;
 
-            this.x += random(-stepSize, stepSize);
-            this.y += random(-stepSize, stepSize);
+            this.location.x += p5.random(-stepSize, stepSize);
+            this.location.y += p5.random(-stepSize, stepSize);
         }
     }
     
@@ -445,6 +476,7 @@ const clouds = (p5:p5) => {
             let yoff = 0;
             for (let y = 0; y < p5.height; y++) {
                 // Update each pixel
+                // Note: this is the behaviour that DOD talks about that should just be an array of arrays
                 const a = p5.map(p5.noise(xoff, yoff, zoff), 0, 1, 0, 255);
                 for (let i = 0; i < d; i++) {
                     for (let j = 0; j < d; j++) {
@@ -460,6 +492,52 @@ const clouds = (p5:p5) => {
         }
         p5.updatePixels();
     }
-}
+};
 
-new p5(clouds, document.getElementById('canvas-2'));
+let inc = 0.01;
+let start = 0;
+const videoPerlinNoiseAnimation = (p5: p5) => {
+    // let xoff1 = 0,
+        // xoff2 = 10_000;
+    p5.setup = () => {
+        p5.createCanvas(500, 500);
+    };
+    
+    p5.draw = () => {
+        p5.background(51);
+        // const x = p5.map(p5.noise(xoff1), 0, 1, 0, p5.width);
+        // const y = p5.map(p5.noise(xoff2), 0, 1, 0, p5.height);
+        // p5.ellipse(x, y, 24, 24);
+        // xoff1 += 0.01; // the smaller, the number the "smoother" the animation becomes (e.g., the steps are less severe)
+        // xoff2 += 0.01; // the smaller, the number the "smoother" the animation becomes (e.g., the steps are less severe)
+        
+        p5.stroke(255);
+        p5.noFill();
+        p5.beginShape(); // allows drawing of a contiguous shape
+        let xoff = start;
+
+        for (let x = 0; x < p5.width; x++) {
+
+            p5.stroke(255);
+            // p5.point(x, p5.random(p5.height));
+            // const y = p5.random(p5.height);
+            // const y = p5.noise(xoff) * p5.height; // perlin noise
+            // const y = p5.height/2 + p5.sin(xoff) * p5.height/2; // sin wave
+            // const y = p5.noise(xoff) * 100 + p5.height/2 + p5.sin(xoff) * p5.height/2; // sin wave with perlin noise
+            const n = p5.map(p5.noise(xoff), 0, 1, -50, 50);
+            const s = p5.map(p5.sin(xoff), -1, 1, 0, p5.height);
+            const y = s + n; // you could use this approach to create "handwritten" letters
+            
+            p5.vertex(x, y);
+            xoff += inc;
+        }
+        p5.endShape();
+        start += inc;
+        // p5.noLoop();
+    
+    
+    };
+};
+
+// new p5(videoPerlinNoiseAnimation, document.getElementById('canvas-2'));
+
