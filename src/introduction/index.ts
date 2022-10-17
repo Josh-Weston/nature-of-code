@@ -1,3 +1,6 @@
+import P5 from 'p5';
+import SimplexNoise from 'simplex-noise';
+
 // Note: I have disabled inlay parameter hints because of the noise it introduces
 const randomWalker = (p5: p5) => {
     class Walker {
@@ -541,3 +544,82 @@ const videoPerlinNoiseAnimation = (p5: p5) => {
 
 // new p5(videoPerlinNoiseAnimation, document.getElementById('canvas-2'));
 
+const videoOpenSimplex = (p5:p5) => {
+
+    let zoff = 0;
+    const simplex = new SimplexNoise('seed');
+    p5.setup = () => {
+        p5.createCanvas(500, 500);
+        p5.loadPixels() // remember, pixels are a continguous Uint8ClampedArray
+        p5.frameRate(30);
+    }
+
+    // the simplex method is much smoother and fluid
+    // this will animate it, but it's very slow
+    p5.draw = () => {
+        zoff += 0.01; // the lower this number, the more "fluid" the changes are. This can create a "water type"
+        const d = p5.pixelDensity();
+        let xoff = 0;
+        for (let x = 0; x < p5.width; x++) {
+            let yoff = 0;
+            for (let y = 0; y < p5.height; y++) {
+                // Update each pixel
+                // Note: this is the behaviour that DOD talks about that should just be an array of arrays
+                const a = p5.map(simplex.noise3D(xoff, yoff, zoff), 0, 1, 0, 255);
+                const bright = p5.map(a, -1, 1, 0, 255);
+                for (let i = 0; i < d; i++) {
+                    for (let j = 0; j < d; j++) {
+                        const index = 4 * ((y * d + j) * p5.width * d + (x * d + i));
+                        p5.pixels[index + 2] = a;
+                        p5.pixels[index + 3] = a;
+
+                    }
+                }
+                yoff += 0.5;
+            }
+            xoff += 0.5;
+        }
+        p5.updatePixels();
+    }
+};
+
+// new P5(videoOpenSimplex, document.getElementById('canvas-1'));
+
+const videoRandomWalk = (p5: p5) => {
+
+    let x: number, y: number;
+
+    p5.setup = () => {
+        p5.createCanvas(500, 500);
+        x = p5.width / 2;
+        y = p5.height / 2;
+        p5.background(51);
+    }
+
+    p5.draw = () => {
+        p5.stroke(255);
+        p5.strokeWeight(1);
+        p5.point(x, y);
+
+        // find its next location
+        const r = p5.floor(p5.random(4));
+
+        switch (r) {
+            case 0:
+                x += 1;
+                break;
+            case 1:
+                x -= 1;
+                break;
+            case 2:
+                y += 1;
+                break;
+            case 3:
+                y -= 1;
+        }
+
+        p5.noLoop();
+    }
+};
+
+new P5(videoRandomWalk, document.getElementById('canvas-1'));

@@ -485,7 +485,8 @@ const vectorAccelerationRandom = (p5:p5) => {
 
 // new P5(vectorAccelerationRandom, document.getElementById("canvas-1"));
 
-// 1.10 Interactivity with acceleration'
+// 1.10 Interactivity with acceleration
+// TODO: This would be cool to expand into a "vaccuum" type effect for objects that already exist on the canvas
 const vectorAccelerationMouse = (p5:p5) => {
     class Mover {
         location: p5.Vector;
@@ -581,7 +582,35 @@ const vectorAccelerationMouse = (p5:p5) => {
     }
 };
 
-new P5(vectorAccelerationMouse, document.getElementById("canvas-1"));
+// new P5(vectorAccelerationMouse, document.getElementById("canvas-1"));
+
+
+// Video 14 (vector normalization)
+
+const MouseVector = (p5: p5) => {
+
+    p5.setup = () => {
+        p5.createCanvas(400, 400);
+    };
+    
+    p5.draw = () => {
+        p5.background(0);
+        const pos = p5.createVector(p5.width/2, p5.height/2);
+        const mouse = p5.createVector(p5.mouseX, p5.mouseY);
+        const v = P5.Vector.sub(mouse, pos);
+
+        // v.normalize();
+        // v.mult(50);
+        v.setMag(50);
+        
+        p5.translate(p5.width/2, p5.height/2);
+        p5.strokeWeight(4);
+        p5.stroke(255);
+        p5.line(0, 0, v.x, v.y);
+    };
+}
+
+new P5(MouseVector, document.getElementById("canvas-1"));
 
 
 // export {};
